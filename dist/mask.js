@@ -1,7 +1,7 @@
 /*!
  * angular-ui-mask
  * https://github.com/angular-ui/ui-mask
- * Version: 1.8.6 - 2016-06-20T21:05:48.730Z
+ * Version: 1.8.6 - 2016-06-21T09:05:17.630Z
  * License: MIT
  */
 
@@ -23,7 +23,8 @@ angular.module('ui.mask', [])
             escChar: '\\',
             eventsToHandle: ['input', 'keyup', 'click', 'focus'],
             addDefaultPlaceholder: true,
-            allowInvalidValue: false
+            allowInvalidValue: false,
+            defaultValueMapper: function (value) { return value; }
         })
         .provider('uiMask.Config', function() {
             var options = {};
@@ -45,6 +46,9 @@ angular.module('ui.mask', [])
             };
             this.allowInvalidValue = function(allowInvalidValue) {
                 return options.allowInvalidValue = allowInvalidValue;
+            };
+            this.defaultValueMapper = function(defaultValueMapper) {
+                return options.defaultValueMapper = defaultValueMapper;
             };
             this.$get = ['uiMaskConfig', function(uiMaskConfig) {
                 var tempOptions = uiMaskConfig;
@@ -68,6 +72,9 @@ angular.module('ui.mask', [])
                     priority: 100,
                     require: 'ngModel',
                     restrict: 'A',
+                    scope: {
+                        valueMapper: '='
+                    },
                     compile: function uiMaskCompilingFunction() {
                         var options = angular.copy(maskConfig);
 
@@ -136,6 +143,11 @@ angular.module('ui.mask', [])
                                 }
                             });
 
+                            var valueMapper = null;
+                            scope.$watch('valueMapper', function (mapper) {
+                                valueMapper = (typeof mapper === 'function') ? mapper : linkOptions.defaultValueMapper;
+                            });
+
                             iAttrs.$observe('allowInvalidValue', function(val) {
                                 linkOptions.allowInvalidValue = val === ''
                                     ? true
@@ -173,7 +185,7 @@ angular.module('ui.mask', [])
                                 controller.$setValidity('mask', isValid);
 
                                 if (isValid || linkOptions.allowInvalidValue) {
-                                    return modelViewValue ? controller.$viewValue : value;
+                                    return valueMapper(modelViewValue ? controller.$viewValue : value);
                                 }
                             }
 
