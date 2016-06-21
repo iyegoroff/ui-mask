@@ -1,7 +1,7 @@
 /*!
  * angular-ui-mask
  * https://github.com/angular-ui/ui-mask
- * Version: 1.8.6 - 2016-06-21T09:05:17.630Z
+ * Version: 1.8.6 - 2016-06-21T09:19:27.103Z
  * License: MIT
  */
 
@@ -24,7 +24,7 @@ angular.module('ui.mask', [])
             eventsToHandle: ['input', 'keyup', 'click', 'focus'],
             addDefaultPlaceholder: true,
             allowInvalidValue: false,
-            defaultValueMapper: function (value) { return value; }
+            valueMapper: function (value) { return value; }
         })
         .provider('uiMask.Config', function() {
             var options = {};
@@ -47,8 +47,8 @@ angular.module('ui.mask', [])
             this.allowInvalidValue = function(allowInvalidValue) {
                 return options.allowInvalidValue = allowInvalidValue;
             };
-            this.defaultValueMapper = function(defaultValueMapper) {
-                return options.defaultValueMapper = defaultValueMapper;
+            this.valueMapper = function(valueMapper) {
+                return options.valueMapper = valueMapper;
             };
             this.$get = ['uiMaskConfig', function(uiMaskConfig) {
                 var tempOptions = uiMaskConfig;
@@ -145,7 +145,7 @@ angular.module('ui.mask', [])
 
                             var valueMapper = null;
                             scope.$watch('valueMapper', function (mapper) {
-                                valueMapper = (typeof mapper === 'function') ? mapper : linkOptions.defaultValueMapper;
+                                valueMapper = (typeof mapper === 'function') ? mapper : linkOptions.valueMapper;
                             });
 
                             iAttrs.$observe('allowInvalidValue', function(val) {
