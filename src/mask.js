@@ -14,7 +14,8 @@ angular.module('ui.mask', [])
             eventsToHandle: ['input', 'keyup', 'click', 'focus'],
             addDefaultPlaceholder: true,
             allowInvalidValue: false,
-            valueMapper: function (value) { return value; }
+            valueMapper: function (value) { return value; },
+            pasteMapper: function (value) { return value; }
         })
         .provider('uiMask.Config', function() {
             var options = {};
@@ -40,6 +41,9 @@ angular.module('ui.mask', [])
             this.valueMapper = function(valueMapper) {
                 return options.valueMapper = valueMapper;
             };
+            this.pasteMapper = function(pasteMapper) {
+                return options.pasteMapper = pasteMapper;
+            };
             this.$get = ['uiMaskConfig', function(uiMaskConfig) {
                 var tempOptions = uiMaskConfig;
                 for(var prop in options) {
@@ -63,7 +67,8 @@ angular.module('ui.mask', [])
                     require: 'ngModel',
                     restrict: 'A',
                     scope: {
-                        valueMapper: '='
+                        valueMapper: '=',
+                        pasteMapper: '='
                     },
                     compile: function uiMaskCompilingFunction() {
                         var options = angular.copy(maskConfig);
@@ -136,6 +141,11 @@ angular.module('ui.mask', [])
                             var valueMapper = null;
                             scope.$watch('valueMapper', function (mapper) {
                                 valueMapper = (typeof mapper === 'function') ? mapper : linkOptions.valueMapper;
+                            });
+
+                            var pasteMapper = null;
+                            scope.$watch('pasteMapper', function (mapper) {
+                                pasteMapper = (typeof mapper === 'function') ? mapper : linkOptions.pasteMapper;
                             });
 
                             iAttrs.$observe('allowInvalidValue', function(val) {
@@ -269,6 +279,7 @@ angular.module('ui.mask', [])
                                 iElement.bind('blur', blurHandler);
                                 iElement.bind('mousedown mouseup', mouseDownUpHandler);
                                 iElement.bind('keydown', keydownHandler);
+                                iElement.bind('paste', pasteHandler);
                                 iElement.bind(linkOptions.eventsToHandle.join(' '), eventHandler);
                                 eventsBound = true;
                             }
@@ -281,6 +292,7 @@ angular.module('ui.mask', [])
                                 iElement.unbind('mousedown', mouseDownUpHandler);
                                 iElement.unbind('mouseup', mouseDownUpHandler);
                                 iElement.unbind('keydown', keydownHandler);
+                                iElement.unbind('paste', pasteHandler);
                                 iElement.unbind('input', eventHandler);
                                 iElement.unbind('keyup', eventHandler);
                                 iElement.unbind('click', eventHandler);
@@ -504,6 +516,14 @@ angular.module('ui.mask', [])
                                     // IE <= 11
                                     element.fireEvent('onchange');
                                 }
+                            }
+
+                            function pasteHandler(e) {
+                                var data = pasteMapper(e.clipboardData.getData('Text'));
+
+                                setTimeout(function () {
+                                    iElement.val(maskValue(unmaskValue(data)));
+                                }, 0);
                             }
 
                             function mouseDownUpHandler(e) {
